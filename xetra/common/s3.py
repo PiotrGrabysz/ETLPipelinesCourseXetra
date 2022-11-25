@@ -9,11 +9,15 @@ import os
 import boto3
 import pandas as pd
 
+from xetra.common.constants import S3FileTypes
+from xetra.common.custom_exceptions import WrongFormatException
+
 
 class S3BucketConnector:
     """
     Class for interacting with S3 Buckets
     """
+    # TODO currently there is no way to ready parquet data (although you can save one)
 
     def __init__(self, access_key: str, secret_key: str, endpoint_url: str, bucket_name: str):
         """
@@ -46,26 +50,58 @@ class S3BucketConnector:
         files = [obj.key for obj in self._bucket.objects.filter(Prefix=prefix)]
         return files
 
-    def read_csv_to_df(self, key: str, decoding: str = 'utf-8', sep: str = ','):
+    def read_csv_to_df(self, key: str, encoding: str = 'utf-8', sep: str = ','):
+        """
+        Fetch a .csv object from the bucket and convert it a pandas DataFrame.
+
+        :param key: A key of the .csv object that should be read.
+        :param encoding: Encoding of the data inside the csv file.
+        :param sep: A separator used by pandas read_csv.
+
+        returns:
+            df: pandas DataFrame containing the data of the .csv file.
+        """
+        self._logger.info(f'Reading the {self.endpoint_url}/{self._bucket.name}/{key}')
         csv_obj = (
             self._bucket
             .Object(key=key)
             .get()
             .get('Body')
             .read()
-            .decode(decoding)
+            .decode(encoding)
         )
         data = StringIO(csv_obj)
         df = pd.read_csv(data, delimiter=sep)
         return df
 
-    def write_df_to_s3(self, df: pd.DataFrame, key: str, mode: str):
-        if mode == "parquet":
+    def write_df_to_s3(self, df: pd.DataFrame, key: str, file_format: str):
+        """
+        Write a data frame into a S3 bucket.
+
+        :param df: A pandas Data Frame to be written.
+        :param key: Key (name) of the saved file.
+        :param file_format: format of the saved file. It has to be of the following: {'csv', 'parquet'}.
+
+        :raises
+        WrongFormatException, if the file_format is not supported
+        """
+
+        # TODO check if such a key already exists before writing it
+
+        if df.empty:
+            self._logger.info('Attempted to write an empty data frame to the S3. No file will be written!')
+            return
+        if file_format == S3FileTypes.PARQUET.value:
             out_buffer = BytesIO()
             df.to_parquet(out_buffer, index=False)
-        elif mode == "csv":
+        elif file_format == S3FileTypes.CSV.value:
             out_buffer = StringIO()
             df.to_csv(out_buffer, index=False)
+        else:
+            self._logger.info(
+                f"The file format {file_format} is not supported. It should be either 'csv' or 'parquet'"
+            )
+            raise WrongFormatException
 
         self._bucket.put_object(Body=out_buffer.getvalue(), Key=key)
-
+        self._logger.info(f'The data frame is written under the key={key}')
