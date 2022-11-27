@@ -36,9 +36,19 @@ class S3BucketConnector:
         )
         self._s3 = self.session.resource(
             service_name='s3',
-            endpoint_url=endpoint_url
+            endpoint_url=self.endpoint_url
         )
         self._bucket = self._s3.Bucket(bucket_name)
+
+        self._access_key = access_key
+        self._secret_key = secret_key
+        self._bucket_name = bucket_name
+
+    def __repr__(self):
+        return (
+            f"S3BucketConnector(access_key='{self._access_key}', secret_key='{self._secret_key}', "
+            f"endpoint_url='{self.endpoint_url}', bucket_name='{self._bucket_name}')"
+        )
 
     def list_files_in_prefix(self, prefix: str):
         """
