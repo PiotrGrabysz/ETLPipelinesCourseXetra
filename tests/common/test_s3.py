@@ -2,43 +2,13 @@
 
 from io import StringIO
 import logging
-import os
 
-import boto3
 import pandas as pd
-from moto import mock_s3
 import pytest
 
 from xetra.common.s3 import S3BucketConnector
 from xetra.common.custom_exceptions import WrongFormatException
-
-s3_access_key = 'AWS_ACCESS_KEY_ID'
-s3_secret_key = 'AWS_SECRET_ACCESS_KEY'
-s3_endpoint_url = 'https://s3.eu-central-1.amazonaws.com'
-s3_bucket_name = 'test-bucket'
-
-
-@pytest.fixture
-def s3_bucket():
-    """Pytest fixture that creates the bucket in the fake moto AWS account.
-    Yields a fake boto3 bucket.
-    """
-    with mock_s3():
-        # Create s3 access key as environment variables
-        os.environ[s3_access_key] = 'KEY1'
-        os.environ[s3_secret_key] = 'KEY2'
-
-        # Create a bucket on the mocked s3
-        s3 = boto3.resource(service_name='s3', endpoint_url=s3_endpoint_url)
-        s3.create_bucket(
-            Bucket=s3_bucket_name,
-            CreateBucketConfiguration={
-                'LocationConstraint': 'eu-central-1'
-            }
-        )
-        s3_bucket = s3.Bucket(s3_bucket_name)
-
-        yield s3_bucket
+from tests.common.s3_bucket_fixture import s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name, s3_bucket
 
 
 def test_list_files_in_prefix_ok(s3_bucket):
@@ -94,8 +64,6 @@ def test_read_csv_to_df(s3_bucket, caplog):
     Tests the read_csv_to_df method if it correctly reads a csv file from the S3 bucket.
     """
     # Expected results
-    prefix_exp = 'some-prefix/'
-    # key1_exp = f'{prefix_exp}test1.csv'
     key_exp = 'test.csv'
     csv_content = """col1,col2
             valA,valB
