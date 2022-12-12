@@ -4,6 +4,8 @@ import boto3
 from moto import mock_s3
 import pytest
 
+from xetra.common.s3 import S3BucketConnector
+
 
 s3_access_key = 'AWS_ACCESS_KEY_ID'
 s3_secret_key = 'AWS_SECRET_ACCESS_KEY'
@@ -32,3 +34,11 @@ def s3_bucket():
         s3_bucket = s3.Bucket(s3_bucket_name)
 
         yield s3_bucket
+
+
+@pytest.fixture
+def my_s3_conn(s3_bucket):
+    s3_bucket_conn = S3BucketConnector(
+        s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name
+    )
+    yield s3_bucket_conn

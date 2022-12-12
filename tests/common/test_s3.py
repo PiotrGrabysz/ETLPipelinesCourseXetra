@@ -8,10 +8,10 @@ import pytest
 
 from xetra.common.s3 import S3BucketConnector
 from xetra.common.custom_exceptions import WrongFormatException
-from tests.common.s3_bucket_fixture import s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name, s3_bucket
+from tests.common.s3_bucket_fixture import s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name, s3_bucket, my_s3_conn
 
 
-def test_list_files_in_prefix_ok(s3_bucket):
+def test_list_files_in_prefix_ok(s3_bucket, my_s3_conn):
     """
     Tests the list_files_in_prefix method for getting 2 file keys as list on the mocked s3 bucket.
     """
@@ -28,18 +28,18 @@ def test_list_files_in_prefix_ok(s3_bucket):
     s3_bucket.put_object(Body=csv_content, Key=key2_exp)
 
     # Create a testing instance
-    s3_bucket_conn = S3BucketConnector(
-        s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name
-    )
+    # s3_bucket_conn = S3BucketConnector(
+    #     s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name
+    # )
 
     # Method execution
-    list_result = s3_bucket_conn.list_files_in_prefix(prefix_exp)
+    list_result = my_s3_conn.list_files_in_prefix(prefix_exp)
 
     # Tests after method execution
     assert len(list_result) == 2
 
 
-def test_list_files_wrong_prefix(s3_bucket):
+def test_list_files_wrong_prefix(my_s3_conn):
     """
     Tests the list_files_in_prefix method in case of a
     wrong or not existing prefix.
@@ -48,12 +48,12 @@ def test_list_files_wrong_prefix(s3_bucket):
     prefix_exp = 'no-prefix/'
 
     # Create a testing instance
-    s3_bucket_conn = S3BucketConnector(
-        s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name
-    )
+    # s3_bucket_conn = S3BucketConnector(
+    #     s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name
+    # )
 
     # Method execution
-    list_result = s3_bucket_conn.list_files_in_prefix(prefix_exp)
+    list_result = my_s3_conn.list_files_in_prefix(prefix_exp)
 
     # Tests after method execution
     assert not list_result
@@ -91,8 +91,7 @@ def test_read_csv_to_df(s3_bucket, caplog):
     pd.testing.assert_frame_equal(df_exp, df_result)
 
 
-@pytest.mark.parametrize('file_format', ['csv', 'parquet'])
-def test_write_df_to_s3_ok(file_format, s3_bucket, caplog):
+def test_write_df_to_s3_ok(s3_bucket, caplog):
     """
     Test if a dataframe uploaded to s3 and if it is the same after downloading it back.
     """
@@ -110,11 +109,14 @@ def test_write_df_to_s3_ok(file_format, s3_bucket, caplog):
 
     # Test init
 
+    file_format = 'csv'
+
     s3_bucket_conn = S3BucketConnector(
         s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_name
     )
 
     # Method execution
+
     with caplog.at_level(logging.INFO):
         s3_bucket_conn.write_df_to_s3(df_exp, key=key_on_s3, file_format=file_format)
         for record in caplog.records:
