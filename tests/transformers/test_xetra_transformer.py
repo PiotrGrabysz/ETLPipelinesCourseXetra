@@ -1,20 +1,46 @@
 """ Test methods of xetra.transformers.xetra_transformer.XetraETL. """
 
-from datetime import datetime
+import datetime
 from io import BytesIO
 import logging
 
 import pandas as pd
-
-from tests.transformers.xetra_data import conf_dict_src, conf_dict_trg, df_src, df_report
+import pytest
 
 from tests.transformers.s3_bucket_fixture import buckets
-from tests.transformers.s3_bucket_fixture_old import s3_access_key, s3_secret_key, s3_endpoint_url, s3_bucket_src_name, s3_bucket_trg_name
-from xetra.common.meta_process import MetaProcess
-from xetra.common.s3 import S3BucketConnector
+from tests.transformers.xetra_data import conf_dict_src, conf_dict_trg, df_src, df_report
 from xetra.transformers.xetra_transformer import XetraETL, XetraTargetConfig, XetraSourceConfig
 
 meta_key = 'meta_file'
+fake_date = datetime.datetime(year=2022, month=11, day=27)
+
+
+@pytest.fixture
+def patch_datetime_now(monkeypatch):
+    """ Monkey patch datetime.datetime.now() method to return always the same date. """
+
+    class my_datetime:
+        @classmethod
+        def now(cls):
+            return fake_date
+
+        @classmethod
+        def utcnow(cls):
+            return fake_date
+
+    monkeypatch.setattr(datetime, 'datetime', my_datetime)
+
+
+@pytest.fixture
+def meta_file_expected_dates():
+    min_date = datetime.datetime.strptime('2022-11-17', '%Y-%m-%d').date()
+    today = datetime.datetime.now().date()
+
+    meta_exp = [
+        (min_date + datetime.timedelta(days=x)).strftime('%Y-%m-%d')
+        for x in range((today - min_date).days + 1)
+    ]
+    return meta_exp
 
 
 def test_extract_no_files(buckets):
@@ -148,12 +174,12 @@ def test_transform_report1(buckets, caplog):
     pd.testing.assert_frame_equal(df_return, df_exp)
 
 
-def test_load(buckets, caplog, monkeypatch):
+def test_patch_datetime(patch_datetime_now):
+    assert datetime.datetime.now() == fake_date
+
+
+def test_load(buckets, caplog, meta_file_expected_dates):
     """ Test load method """
-    # def mock_today():
-    #     return datetime(year=2022, month=11, day=20).date
-    #
-    # monkeypatch.setattr(datetime, 'today', mock_today)
 
     # Expected output
 
@@ -162,10 +188,6 @@ def test_load(buckets, caplog, monkeypatch):
         'Xetra meta file is successfully updated'
     ]
     df_exp = df_report
-    meta_exp = [
-        '2022-11-17', '2022-11-18', '2022-11-19', '2022-11-20', '2022-11-21', '2022-11-22', '2022-11-23', '2022-11-24',
-        '2022-11-25', '2022-11-26', '2022-11-27'
-    ]
 
     # Test init
 
@@ -206,18 +228,14 @@ def test_load(buckets, caplog, monkeypatch):
     df_meta_result = s3_bucket_trg_connector.read_csv_to_df(meta_file)
     
     print(f"{df_meta_result['source_date'].tolist()=}")
-    assert df_meta_result['source_date'].tolist() == meta_exp
+    assert df_meta_result['source_date'].tolist() == meta_file_expected_dates
 
 
-def test_etl_report1(buckets):
+def test_etl_report1(buckets, meta_file_expected_dates):
 
     # Expected output
 
     df_exp = df_report
-    meta_exp = [
-        '2022-11-17', '2022-11-18', '2022-11-19', '2022-11-20', '2022-11-21', '2022-11-22', '2022-11-23', '2022-11-24',
-        '2022-11-25', '2022-11-26', '2022-11-27'
-    ]
 
     # Test init
 
@@ -253,4 +271,4 @@ def test_etl_report1(buckets):
     df_meta_result = s3_bucket_trg_connector.read_csv_to_df(meta_file)
 
     print(f"{df_meta_result['source_date'].tolist()=}")
-    assert df_meta_result['source_date'].tolist() == meta_exp
+    assert df_meta_result['source_date'].tolist() == meta_file_expected_dates
