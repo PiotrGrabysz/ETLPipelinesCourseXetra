@@ -27,16 +27,16 @@ class XetraSourceConfig(NamedTuple):
     src_col_max_price: column name for maximum price in source
     src_col_traded_vol: column name for traded volume in source
     """
-    src_first_extract_date: str
-    src_columns: list
-    src_col_date: str
-    src_col_isin: str
-    src_col_time: str
-    src_col_start_price: str
-    src_col_end_price: str
-    src_col_min_price: str
-    src_col_max_price: str
-    src_col_traded_vol: str
+    first_extract_date: str
+    columns: list
+    col_date: str
+    col_isin: str
+    col_time: str
+    col_start_price: str
+    col_end_price: str
+    col_min_price: str
+    col_max_price: str
+    col_traded_vol: str
 
 
 class XetraTargetConfig(NamedTuple):
@@ -98,7 +98,7 @@ class XetraETL:
         self.trg_args = trg_args
         self.extract_date, self.extract_date_list = MetaProcess.return_date_list(
             s3_bucket_meta=self.s3_bucket_trg,
-            first_date=self.src_args.src_first_extract_date,
+            first_date=self.src_args.first_extract_date,
             meta_key=self.meta_key
         )
         self.meta_update_list = [
@@ -141,15 +141,15 @@ class XetraETL:
         self._logger.info('Applying transformations to Xetra source data for report 1 started...')
 
         # Filter only the necessary columns
-        df = df.loc[:, self.src_args.src_columns]
+        df = df.loc[:, self.src_args.columns]
         df.dropna(inplace=True)
 
         # Calculate opening price per ISIN and day
 
         df[self.trg_args.col_opening_price] = (
             df
-            .sort_values(by=self.src_args.src_col_time)
-            .groupby([self.src_args.src_col_isin, self.src_args.src_col_date])[self.src_args.src_col_start_price]
+            .sort_values(by=self.src_args.col_time)
+            .groupby([self.src_args.col_isin, self.src_args.col_date])[self.src_args.col_start_price]
             .transform('first')
         )
 
@@ -157,8 +157,8 @@ class XetraETL:
 
         df[self.trg_args.col_closing_price] = (
             df
-            .sort_values(by=self.src_args.src_col_time)
-            .groupby([self.src_args.src_col_isin, self.src_args.src_col_date])[self.src_args.src_col_end_price]
+            .sort_values(by=self.src_args.col_time)
+            .groupby([self.src_args.col_isin, self.src_args.col_date])[self.src_args.col_end_price]
             .transform('last')
         )
 
@@ -166,9 +166,9 @@ class XetraETL:
 
         df.rename(
             columns={
-                self.src_args.src_col_min_price: self.trg_args.col_min_price,
-                self.src_args.src_col_max_price: self.trg_args.col_max_price,
-                self.src_args.src_col_traded_vol: self.trg_args.col_daily_traded_volume
+                self.src_args.col_min_price: self.trg_args.col_min_price,
+                self.src_args.col_max_price: self.trg_args.col_max_price,
+                self.src_args.col_traded_vol: self.trg_args.col_daily_traded_volume
             },
             inplace=True
         )
@@ -177,7 +177,7 @@ class XetraETL:
 
         df = (
             df
-            .groupby([self.src_args.src_col_isin, self.src_args.src_col_date], as_index=False)
+            .groupby([self.src_args.col_isin, self.src_args.col_date], as_index=False)
             .agg({
                 self.trg_args.col_opening_price: 'min',
                 self.trg_args.col_closing_price: 'min',
@@ -192,8 +192,8 @@ class XetraETL:
 
         df[self.trg_args.col_change] = (
             df
-            .sort_values(by=self.src_args.src_col_date)
-            .groupby(self.src_args.src_col_isin)[self.trg_args.col_closing_price].shift(1)
+            .sort_values(by=self.src_args.col_date)
+            .groupby(self.src_args.col_isin)[self.trg_args.col_closing_price].shift(1)
         )
         df[self.trg_args.col_change] = \
             (df[self.trg_args.col_closing_price] - df[self.trg_args.col_change]) / df[self.trg_args.col_change] * 100

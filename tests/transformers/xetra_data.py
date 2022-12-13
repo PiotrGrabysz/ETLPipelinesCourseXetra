@@ -7,19 +7,19 @@ from xetra.transformers.xetra_transformer import XetraTargetConfig, XetraSourceC
 
 # Creating source and target configuration
 conf_dict_src = {
-    'src_first_extract_date': '2022-11-17',
-    'src_columns': [
+    'first_extract_date': '2022-11-17',
+    'columns': [
         'ISIN', 'Mnemonic', 'Date', 'Time',
         'StartPrice', 'EndPrice', 'MinPrice', 'MaxPrice', 'TradedVolume'
     ],
-    'src_col_date': 'Date',
-    'src_col_isin': 'ISIN',
-    'src_col_time': 'Time',
-    'src_col_start_price': 'StartPrice',
-    'src_col_end_price': 'EndPrice',
-    'src_col_min_price': 'MinPrice',
-    'src_col_max_price': 'MaxPrice',
-    'src_col_traded_vol': 'TradedVolume'
+    'col_date': 'Date',
+    'col_isin': 'ISIN',
+    'col_time': 'Time',
+    'col_start_price': 'StartPrice',
+    'col_end_price': 'EndPrice',
+    'col_min_price': 'MinPrice',
+    'col_max_price': 'MaxPrice',
+    'col_traded_vol': 'TradedVolume'
 }
 conf_dict_trg = {
     'col_isin': 'isin',

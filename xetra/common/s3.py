@@ -34,10 +34,7 @@ class S3BucketConnector:
             aws_access_key_id=os.environ[access_key],
             aws_secret_access_key=os.environ[secret_key]
         )
-        self._s3 = self.session.resource(
-            service_name='s3',
-            endpoint_url=self.endpoint_url
-        )
+        self._s3 = self.session.resource(service_name='s3')
         self._bucket = self._s3.Bucket(bucket_name)
 
         self._access_key = access_key

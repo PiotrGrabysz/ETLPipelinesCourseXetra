@@ -48,7 +48,7 @@ def test_extract_no_files(buckets):
 
     # Test init
     extract_date = '2200-01-01'
-    conf_dict_src['src_first_extract_date'] = extract_date
+    conf_dict_src['first_extract_date'] = extract_date
 
     s3_bucket_src_connector, s3_bucket_trg_connector = buckets
 
@@ -77,7 +77,7 @@ def test_extract_ok(buckets):
     # Test init
     extract_date = '2022-11-17'
 
-    conf_dict_src['src_first_extract_date'] = extract_date
+    conf_dict_src['first_extract_date'] = extract_date
 
     s3_bucket_src_connector, s3_bucket_trg_connector = buckets
 
@@ -109,7 +109,7 @@ def test_transform_report1_empty(buckets, caplog):
     # Test init
 
     extract_date = '2022-11-17'
-    conf_dict_src['src_first_extract_date'] = extract_date
+    conf_dict_src['first_extract_date'] = extract_date
     df_input = pd.DataFrame()
 
     s3_bucket_src_connector, s3_bucket_trg_connector = buckets
@@ -149,7 +149,7 @@ def test_transform_report1(buckets, caplog):
     # Test init
 
     extract_date = '2022-11-17'
-    conf_dict_src['src_first_extract_date'] = extract_date
+    conf_dict_src['first_extract_date'] = extract_date
     df_input = df_src.loc[1:8].reset_index(drop=True)
 
     s3_bucket_src_connector, s3_bucket_trg_connector = buckets
@@ -192,7 +192,7 @@ def test_load(buckets, caplog, meta_file_expected_dates):
     # Test init
 
     extract_date = '2022-11-17'
-    conf_dict_src['src_first_extract_date'] = extract_date
+    conf_dict_src['first_extract_date'] = extract_date
     df_input = df_report
 
     s3_bucket_src_connector, s3_bucket_trg_connector = buckets
@@ -240,7 +240,7 @@ def test_etl_report1(buckets, meta_file_expected_dates):
     # Test init
 
     extract_date = '2022-11-17'
-    conf_dict_src['src_first_extract_date'] = extract_date
+    conf_dict_src['first_extract_date'] = extract_date
 
     s3_bucket_src_connector, s3_bucket_trg_connector = buckets
 
