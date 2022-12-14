@@ -21,8 +21,8 @@ python run.py CONFIG_FILE
 ```
 
 CONFIG_FILE is a configuration file written in YAML format.
-Please visit []() to learn what should be included in the config file and check
-`configs/xetra_report1_config.yml` to see and example config file.
+Please check
+`configs/xetra_report1_config.yml` to see an example config file.
 
 ## About the task and the data
 
