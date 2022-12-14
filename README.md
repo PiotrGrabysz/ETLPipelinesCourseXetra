@@ -13,7 +13,7 @@ pipenv shell
 
 The data used in this project is *Deutsche Börse Public Dataset*:
 
-![](images/deutsche_borse_public_dataset_preview1.png)
+![](docs/images/deutsche_borse_public_dataset_preview1.png)
 
 A column name `ISIN` stands for *International Securities Identification Number* 
 (wikipedia article: [https://en.wikipedia.org/wiki/International_Securities_Identification_Number](wiki)) 
