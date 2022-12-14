@@ -41,7 +41,7 @@ mocked dataset, with the same features as the original *Deutsche Börse*.
 
 ### Project's objective
 
-The goal is to extract the data from AWS S3 bucket, aggregate data for each unique `ISIN`[^1] and compute the values of:
+The goal is to extract the data from AWS S3 bucket, aggregate data for each unique `ISIN`<sup>[1]</sup> and compute the values of:
 
 * `opening_price`: it is the first StartPrice price of each unique `ISIN` per each day
 * `closing_price`: it is the last EndPrice price of each unique `ISIN` per each day
@@ -55,8 +55,9 @@ AWS S3 bucket at my personal account.
 It also loads a meta file, which holds the dates of source data together with their time of processing.
 This way, when the entrypoint job is run again only the unprocessed data is transformed.
 
-[^1] A column name `ISIN` stands for *International Securities Identification Number* 
-(see the [wikipedia article](https://en.wikipedia.org/wiki/International_Securities_Identification_Number))
+---
+1. A column name `ISIN` stands for *International Securities Identification Number* 
+    (see the [wikipedia article](https://en.wikipedia.org/wiki/International_Securities_Identification_Number))
 
 ## About testing
 
